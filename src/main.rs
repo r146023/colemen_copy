@@ -1,10 +1,11 @@
 use std::collections::HashSet;
 use std::env;
 use std::fs::{self, File, Metadata};
-use std::io::{self, Read, Write};
+use std::io::{self, Read, Write, Seek};
 use std::path::Path;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use std::thread;
+use rand::{Rng, thread_rng};
 
 /// ColemenCopy - A cross-platform alternative to Robocopy
 ///
@@ -48,6 +49,7 @@ struct CopyOptions {
     log_file_names: bool,
     empty_files: bool,  // New option for creating empty files
     child_only: bool,  // New option for processing only direct child folders
+    shred_files: bool,  // New option for secure file deletion
 }
 
 impl Default for CopyOptions {
@@ -72,6 +74,7 @@ impl Default for CopyOptions {
             log_file_names: true,
             empty_files: false,  // Default to false
             child_only: false,  // Default to false
+            shred_files: false,  // Default to false
         }
     }
 }
@@ -156,6 +159,7 @@ fn main() -> io::Result<()> {
             "/NFL" => options.log_file_names = false,
             "/EMPTY" => options.empty_files = true,
             "/CHILDONLY" => options.child_only = true,
+            "/SHRED" => options.shred_files = true,
             _ => {
                 if arg.starts_with("/A+:") {
                     options.attributes_add = arg[4..].to_string();
@@ -238,13 +242,13 @@ fn main() -> io::Result<()> {
                     if child_path.is_dir() {
                         let child_name = child_path.file_name().unwrap_or_default().to_string_lossy().to_string();
                         let child_dest = dest_path.join(&child_name);
-                        
+
                         // Log the child directory processing
                         log_message(
-                            &mut log_file, 
+                            &mut log_file,
                             &format!("\nProcessing child directory: {}", child_name)
                         );
-                        
+
                         // Process this child directory
                         copy_directory(
                             &child_path,
@@ -334,6 +338,7 @@ fn print_usage(program_name: &str) {
     println!("  /NFL       - No file list - don't log file names");
     println!("  /EMPTY     - Create empty (zero-byte) copies of files");
     println!("  /CHILDONLY - Process only direct child folders of source path");
+    println!("  /SHRED     - Securely overwrite files before deletion");
 }
 
 fn format_time(time: SystemTime) -> String {
@@ -412,9 +417,13 @@ fn format_options(options: &CopyOptions) -> String {
     if options.empty_files {
         result.push("/EMPTY".to_string());
     }
-    
+
     if options.child_only {
         result.push("/CHILDONLY".to_string());
+    }
+
+    if options.shred_files {
+        result.push("/SHRED".to_string());
     }
 
     result.join(" ")
@@ -568,7 +577,11 @@ fn copy_file(
 
                 // Move (delete source) if requested
                 if options.move_files {
-                    let _ = fs::remove_file(src_path);
+                    if options.shred_files {
+                        securely_delete_file(src_path, log_file)?;
+                    } else {
+                        let _ = fs::remove_file(src_path);
+                    }
                 }
 
                 stats.files_copied += 1;
@@ -728,17 +741,124 @@ fn copy_directory(
 
                 if !src_entries.contains(&file_name) {
                     if path.is_file() {
-                        log_message(log_file, &format!("Removing file: {}", path.display()));
-                        fs::remove_file(&path)?;
+                        if options.shred_files {
+                            log_message(log_file, &format!("Securely removing file: {}", path.display()));
+                            securely_delete_file(&path, log_file)?;
+                        } else {
+                            log_message(log_file, &format!("Removing file: {}", path.display()));
+                            fs::remove_file(&path)?;
+                        }
                         stats.files_removed += 1;
                     } else if path.is_dir() {
-                        log_message(log_file, &format!("Removing directory: {}", path.display()));
-                        fs::remove_dir_all(&path)?;
+                        // For directories, recursively handle if shredding is enabled
+                        if options.shred_files {
+                            log_message(log_file, &format!("Securely removing directory: {}", path.display()));
+                            secure_remove_dir_all(&path, log_file)?;
+                        } else {
+                            log_message(log_file, &format!("Removing directory: {}", path.display()));
+                            fs::remove_dir_all(&path)?;
+                        }
                         stats.dirs_removed += 1;
                     }
                 }
             }
         }
+    }
+
+    Ok(())
+}
+
+fn securely_delete_file(path: &Path, log_file: &mut Option<File>) -> io::Result<()> {
+    // Get the file size
+    let metadata = fs::metadata(path)?;
+    let file_size = metadata.len();
+
+    // Open the file for writing
+    let mut file = fs::OpenOptions::new()
+        .write(true)
+        .open(path)?;
+
+    // Buffer for overwriting
+    const BUFFER_SIZE: usize = 64 * 1024; // 64 KB
+
+    // Multiple overwrite passes with different patterns
+    let patterns = [
+        0xFF, // All ones
+        0x00, // All zeros
+        0xAA, // 10101010
+        0x55, // 01010101
+        0xF0, // 11110000
+        0x0F, // 00001111
+    ];
+
+    let mut buffer = vec![0; BUFFER_SIZE];
+
+    for &pattern in &patterns {
+        // Fill buffer with the current pattern
+        for i in 0..BUFFER_SIZE {
+            buffer[i] = pattern;
+        }
+
+        // Seek to beginning of file
+        file.seek(io::SeekFrom::Start(0))?;
+
+        // Write the pattern over the entire file
+        let mut remaining = file_size;
+        while remaining > 0 {
+            let to_write = std::cmp::min(remaining, BUFFER_SIZE as u64) as usize;
+            file.write_all(&buffer[..to_write])?;
+            remaining -= to_write as u64;
+        }
+
+        // Flush to ensure data is written
+        file.flush()?;
+    }
+
+    // Final pass with random data
+    let mut rng = thread_rng();
+    for i in 0..BUFFER_SIZE {
+        buffer[i] = rng.gen_range(0..=255);
+    }
+
+    file.seek(io::SeekFrom::Start(0))?;
+
+    let mut remaining = file_size;
+    while remaining > 0 {
+        let to_write = std::cmp::min(remaining, BUFFER_SIZE as u64) as usize;
+        file.write_all(&buffer[..to_write])?;
+        remaining -= to_write as u64;
+    }
+
+    file.flush()?;
+
+    // Close the file
+    drop(file);
+
+    // Now delete the file
+    fs::remove_file(path)?;
+
+    log_message(log_file, &format!("Securely deleted file: {}", path.display()));
+
+    Ok(())
+}
+
+fn secure_remove_dir_all(dir: &Path, log_file: &mut Option<File>) -> io::Result<()> {
+    // First, recursively shred all files in subdirectories
+    if dir.is_dir() {
+        for entry in fs::read_dir(dir)? {
+            let entry = entry?;
+            let path = entry.path();
+
+            if path.is_dir() {
+                secure_remove_dir_all(&path, log_file)?;
+            } else {
+                securely_delete_file(&path, log_file)?;
+            }
+        }
+
+        // Remove the now-empty directory
+        fs::remove_dir(dir)?;
+        log_message(log_file, &format!("Removed directory after secure file deletion: {}", dir.display()));
     }
 
     Ok(())
