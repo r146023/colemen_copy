@@ -4,6 +4,9 @@ Colemen_copy is a robust file copying utility written in Rust that provides simi
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+> **Tiny Note**: I included the .vscode folder, it has a tasks.json file, which offers a super lazy way to compile the program through vscode. If you don't want it, delete that shit, it is not critical to the software in any way.
+
+
 ## Features
 
 - **Cross-Platform Compatibility**: Works on Linux, macOS, and Windows
