@@ -1,6 +1,6 @@
-# ColemenCopy: A Cross-Platform Alternative to Robocopy
+# Colemen_copy: A Cross-Platform Alternative to Robocopy
 
-ColemenCopy is a robust file copying utility written in Rust that provides similar functionality to Microsoft's Robocopy (Robust File Copy) but works across multiple platforms including Linux, macOS, and Windows.
+Colemen_copy is a robust file copying utility written in Rust that provides similar functionality to Microsoft's Robocopy (Robust File Copy) but works across multiple platforms including Linux, macOS, and Windows.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -29,8 +29,8 @@ ColemenCopy is a robust file copying utility written in Rust that provides simil
 
 2. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/colemenCopy.git
-   cd colemenCopy
+   git clone https://github.com/yourusername/colemen_copy.git
+   cd colemen_copy
    ```
 
 3. Build the project:
@@ -38,37 +38,37 @@ ColemenCopy is a robust file copying utility written in Rust that provides simil
    cargo build --release
    ```
 
-4. The executable will be available at `target/release/colemenCopy`
+4. The executable will be available at `target/release/colemen_copy`
 
 ## Usage
 
 ```
-colemenCopy <source> <destination> [file_pattern] [options]
+colemen_copy <source> <destination> [file_pattern] [options]
 ```
 
 ### Basic Examples
 
 ```bash
 # Copy all files from source to destination
-./colemenCopy /path/to/source /path/to/destination
+./colemen_copy /path/to/source /path/to/destination
 
 # Copy all .jpg files
-./colemenCopy /path/to/source /path/to/destination *.jpg
+./colemen_copy /path/to/source /path/to/destination *.jpg
 
 # Mirror a directory tree, including empty directories
-./colemenCopy /path/to/source /path/to/destination /MIR
+./colemen_copy /path/to/source /path/to/destination /MIR
 
 # Copy with progress display, retries, and logging
-./colemenCopy /path/to/source /path/to/destination /Z /R:5 /W:10 /LOG:copy_log.txt
+./colemen_copy /path/to/source /path/to/destination /Z /R:5 /W:10 /LOG:copy_log.txt
 
 # Create empty (zero-byte) copies of all files
-./colemenCopy /path/to/source /path/to/destination /EMPTY /E
+./colemen_copy /path/to/source /path/to/destination /EMPTY /E
 
 # Process only direct child folders of the source directory
-./colemenCopy /path/to/source /path/to/destination /CHILDONLY
+./colemen_copy /path/to/source /path/to/destination /CHILDONLY
 
 # Securely delete files in destination that don't exist in source
-./colemenCopy /path/to/source /path/to/destination /PURGE /SHRED
+./colemen_copy /path/to/source /path/to/destination /PURGE /SHRED
 ```
 
 ## Command Line Options
@@ -98,7 +98,7 @@ colemenCopy <source> <destination> [file_pattern] [options]
 
 ## File Pattern Syntax
 
-ColemenCopy supports simple wildcard patterns:
+Colemen_copy supports simple wildcard patterns:
 
 - `*` - Matches any number of any characters
 - `*word*` - Matches any string containing "word"
@@ -108,11 +108,11 @@ ColemenCopy supports simple wildcard patterns:
 
 ## Understanding the Output
 
-When ColemenCopy runs, it provides statistics in the following format:
+When Colemen_copy runs, it provides statistics in the following format:
 
 ```
 -------------------------------------------------------------------------------
-ColemenCopy - Finished: HH:MM:SS
+Colemen_copy - Finished: HH:MM:SS
 Source: /path/to/source
 Destination: /path/to/destination
 
@@ -137,7 +137,7 @@ Elapsed time: N seconds
 To make the destination exactly match the source (including deleting files in destination that don't exist in source):
 
 ```bash
-./colemenCopy /path/to/source /path/to/destination /MIR
+./colemen_copy /path/to/source /path/to/destination /MIR
 ```
 
 ---
@@ -147,7 +147,7 @@ To make the destination exactly match the source (including deleting files in de
 For faster operations on multi-core systems:
 
 ```bash
-./colemenCopy /path/to/source /path/to/destination /MT:16
+./colemen_copy /path/to/source /path/to/destination /MT:16
 ```
 
 ---
@@ -157,7 +157,7 @@ For faster operations on multi-core systems:
 When copying across unreliable networks:
 
 ```bash
-./colemenCopy /path/to/source /path/to/destination /Z /R:100 /W:30
+./colemen_copy /path/to/source /path/to/destination /Z /R:100 /W:30
 ```
 
 ---
@@ -167,7 +167,7 @@ When copying across unreliable networks:
 To move files instead of copying them:
 
 ```bash
-./colemenCopy /path/to/source /path/to/destination /MOV
+./colemen_copy /path/to/source /path/to/destination /MOV
 ```
 
 ---
@@ -178,7 +178,7 @@ To move files instead of copying them:
 To copy only specific file types:
 
 ```bash
-./colemenCopy /path/to/source /path/to/destination *.jpg *.png *.gif /S
+./colemen_copy /path/to/source /path/to/destination *.jpg *.png *.gif /S
 ```
 
 ---
@@ -189,7 +189,7 @@ To copy only specific file types:
 When removing files (either with `/PURGE`, `/MIR`, or when moving files with `/MOV` or `/MOVE`), you can ensure the files are securely deleted to prevent data recovery:
 
 ```bash
-./colemenCopy /path/to/source /path/to/destination /MIR /SHRED
+./colemen_copy /path/to/source /path/to/destination /MIR /SHRED
 ```
 
 > Note that secure deletion significantly increases the time required for operations that delete files, as each file must be overwritten multiple times before deletion.
@@ -203,7 +203,7 @@ When removing files (either with `/PURGE`, `/MIR`, or when moving files with `/M
 To recreate a directory structure without copying the actual file contents (useful for testing or planning):
 
 ```bash
-./colemenCopy /path/to/source /path/to/destination /EMPTY /E
+./colemen_copy /path/to/source /path/to/destination /EMPTY /E
 ```
 
 This creates all the same directories and files, but the files are empty (zero bytes), saving disk space while preserving the structure.
@@ -214,7 +214,7 @@ This creates all the same directories and files, but the files are empty (zero b
 To recreate a directory structure without copying the actual file contents (useful for testing or planning):
 
 ```bash
-./colemenCopy /path/to/source /path/to/destination /EMPTY /E
+./colemen_copy /path/to/source /path/to/destination /EMPTY /E
 ```
 
 The `/EMPTY` option is particularly useful for:
@@ -233,7 +233,7 @@ The `/EMPTY` option is particularly useful for:
 To process only the direct child folders of the source path:
 
 ```bash
-./colemenCopy /path/to/source /path/to/destination /CHILDONLY
+./colemen_copy /path/to/source /path/to/destination /CHILDONLY
 ```
 
 This option is useful when:
@@ -289,7 +289,7 @@ Destination/
 ```
 When you run the command:
 ```bash
-./colemenCopy /path/to/Source /path/to/Destination /MIR /CHILDONLY
+./colemen_copy /path/to/Source /path/to/Destination /MIR /CHILDONLY
 ```
 It will go through ProjectA,ProjectB and ProjectC to synchronize everything within those directories.
 It will completely ignore `ThisFileIsIgnored.md` and it will **NOT** delete or modify the `EXTRA_THING` directory in the destination.
@@ -305,19 +305,19 @@ This is very useful for synchronizing a folder where each child needs to be hand
 
 ## Comparison with Other Tools
 
-### ColemenCopy vs Robocopy
+### Colemen_copy vs Robocopy
 
 - **Advantages**: Cross-platform compatibility, Rust safety guarantees
 - **Limitations**: Some advanced Robocopy features may not be implemented
 
-### ColemenCopy vs rsync
+### Colemen_copy vs rsync
 
 - **Advantages**: Windows support, Robocopy-like syntax for Windows users
 - **Limitations**: Not as optimized for network transfers as rsync
 
 ## Error Handling
 
-ColemenCopy includes comprehensive error handling and will:
+Colemen_copy includes comprehensive error handling and will:
 
 1. Retry failed operations according to specified retry parameters
 2. Log all errors encountered during copying
@@ -346,5 +346,5 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-*ColemenCopy is not affiliated with Microsoft or Robocopy. It is an independent implementation providing similar functionality.*
+*Colemen_copy is not affiliated with Microsoft or Robocopy. It is an independent implementation providing similar functionality.*
 
