@@ -16,6 +16,7 @@ ColemenCopy is a robust file copying utility written in Rust that provides simil
 - **Attribute Preservation**: Maintains file timestamps and attributes
 - **Empty Files Mode**: Create zero-byte copies to recreate directory structures efficiently
 - **Child Directory Mode**: Process only direct child folders of source path
+- **Secure Deletion**: Securely overwrite files before deletion to prevent data recovery
 
 ## Installation
 
@@ -65,6 +66,9 @@ colemenCopy <source> <destination> [file_pattern] [options]
 
 # Process only direct child folders of the source directory
 ./colemenCopy /path/to/source /path/to/destination /CHILDONLY
+
+# Securely delete files in destination that don't exist in source
+./colemenCopy /path/to/source /path/to/destination /PURGE /SHRED
 ```
 
 ## Command Line Options
@@ -90,6 +94,7 @@ colemenCopy <source> <destination> [file_pattern] [options]
 | `/NFL` | No file list - don't log file names |
 | `/EMPTY` | Create empty (zero-byte) copies of files |
 | `/CHILDONLY` | Process only direct child folders of source path |
+| `/SHRED` | Securely overwrite files before deletion |
 
 ## File Pattern Syntax
 
@@ -135,6 +140,8 @@ To make the destination exactly match the source (including deleting files in de
 ./colemenCopy /path/to/source /path/to/destination /MIR
 ```
 
+---
+
 ### Multithreaded Copying
 
 For faster operations on multi-core systems:
@@ -142,6 +149,8 @@ For faster operations on multi-core systems:
 ```bash
 ./colemenCopy /path/to/source /path/to/destination /MT:16
 ```
+
+---
 
 ### Retry Logic for Network Shares
 
@@ -151,6 +160,8 @@ When copying across unreliable networks:
 ./colemenCopy /path/to/source /path/to/destination /Z /R:100 /W:30
 ```
 
+---
+
 ### Moving Files
 
 To move files instead of copying them:
@@ -159,7 +170,7 @@ To move files instead of copying them:
 ./colemenCopy /path/to/source /path/to/destination /MOV
 ```
 
-
+---
 
 
 ### Copying Specific File Types
@@ -169,6 +180,23 @@ To copy only specific file types:
 ```bash
 ./colemenCopy /path/to/source /path/to/destination *.jpg *.png *.gif /S
 ```
+
+---
+
+
+### Secure File Deletion
+
+When removing files (either with `/PURGE`, `/MIR`, or when moving files with `/MOV` or `/MOVE`), you can ensure the files are securely deleted to prevent data recovery:
+
+```bash
+./colemenCopy /path/to/source /path/to/destination /MIR /SHRED
+```
+
+> Note that secure deletion significantly increases the time required for operations that delete files, as each file must be overwritten multiple times before deletion.
+
+
+
+---
 
 ### Creating Directory Structure with Empty Files
 
@@ -197,6 +225,8 @@ The `/EMPTY` option is particularly useful for:
 4. **Backup preparation**: Create a directory structure quickly before prioritizing which files to back up
 5. **Low bandwidth environments**: When you need to recreate a file structure remotely but have limited bandwidth
 
+
+---
 
 ### Processing Only Direct Child Folders
 
@@ -268,6 +298,10 @@ The `banner.jpg` in ProjectB will be deleted because it does not exist in the so
 
 This is very useful for synchronizing a folder where each child needs to be handled individually.
 
+
+
+
+---
 
 ## Comparison with Other Tools
 
