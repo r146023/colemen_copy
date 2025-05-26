@@ -29,7 +29,7 @@ Colemen_copy is a robust file copying utility written in Rust that provides simi
 
 2. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/colemen_copy.git
+   git clone https://github.com/r146023/colemen_copy.git
    cd colemen_copy
    ```
 
@@ -39,6 +39,16 @@ Colemen_copy is a robust file copying utility written in Rust that provides simi
    ```
 
 4. The executable will be available at `target/release/colemen_copy`
+
+### I just want to use it
+
+1. Download this repository
+2. Extract it
+3. Copy the executable out of the "executables" folder. 
+4. Paste it wherever you want and call it from your terminal. (You can delete the repository folder, if you want.)
+4. You are good to go!
+
+
 
 ## Usage
 
